@@ -3,12 +3,15 @@
 """ fixtures """
 
 import pytest
+import PyMediaRSS2Gen as mrss
+
+FEED_URL = 'http://nowhere.org/rss.xml'
 
 @pytest.fixture
 def feed():
     """ fixture creating an empty feed """
     return mrss.MediaRSS2(
         title = 'Test Feed',
-        link = 'https://github.com/wedi/PyMediaRSS2Gen/',
+        link = 'http://nowhere.org/nopost',
         description = 'A testing feed'
     )

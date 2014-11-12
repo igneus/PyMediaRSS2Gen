@@ -8,7 +8,7 @@ MediaRSS2
 import pytest
 import PyMediaRSS2Gen as mrss
 
-import fixtures
+from fixtures import *
 
 class Test_EmptyFeed(object):
 
@@ -23,7 +23,6 @@ class Test_EmptyFeed(object):
     def test_hasNamespace(self, feed):
         """ the feed defines the media module namespace """
         output = feed.to_xml()
-        print output
         assert 'xmlns:media="http://search.yahoo.com/mrss/"' in output
 
 class Test_Items(object):
