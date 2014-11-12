@@ -74,9 +74,14 @@ class MediaContent(object):
         duration=None,
         height=None,
         width=None,
-        lang=None
+        lang=None,
+
+
+        media_thumbnails=None,
     ):
         """Create a media:content element, args will be attributes."""
+        self.media_thumbnails = media_thumbnails
+
         self.element_attrs = OrderedDict()
 
         self._add_attribute('url', url)
@@ -113,7 +118,16 @@ class MediaContent(object):
 
     def publish(self, handler):
         """Publish the MediaContent as XML."""
-        PyRSS2Gen._element(handler, "media:content", None, self.element_attrs)
+        handler.startElement("media:content", self.element_attrs)
+
+        if hasattr(self, 'media_thumbnails'):
+            if not isinstance(self.media_thumbnails, list):
+                self.media_thumbnails = [self.media_thumbnails]
+
+            for t in self.media_thumbnails:
+                PyRSS2Gen._opt_element(handler, "media:thumbnail", t)
+
+        handler.endElement("media:content")
 
     def __repr__(self):
         """Return a nice string representation for prettier debugging."""
@@ -243,3 +257,53 @@ class MediaRSSItem(PyRSS2Gen.RSSItem, object):
 
         if hasattr(self, 'media_text'):
             PyRSS2Gen._opt_element(handler, "media:text", self.media_text)
+
+class MediaThumbnail(object):
+
+    """Publish a Media Thumbnail Item."""
+
+    def __init__(
+        self,
+        url,
+        height=None,
+        width=None,
+        time=None # string in the NTP format - see http://www.rssboard.org/media-rss
+    ):
+        """Create a thumbnail element that contains args as attributes."""
+
+        self.element_attrs = OrderedDict()
+        self._add_attribute('url', url)
+        self._add_attribute('width', width)
+        self._add_attribute('height', height)
+        self._add_attribute('time', time)
+
+        self.check_complicance()
+
+    def _add_attribute(self, name, value):
+        """Add an attribute to the MediaContent element."""
+        if value:
+            if isinstance(value, (int, bool)):
+                value = str(value)
+
+            self.element_attrs[name] = value
+
+    def check_complicance(self):
+        """Check compliance with Media RSS Specification, Version 1.5.1.
+
+        see http://www.rssboard.org/media-rss
+        Raises AttributeError on error.
+        """
+
+        if not self.element_attrs.get('url'):
+            raise AttributeError('thumbnail url must be specified')
+
+        if self.element_attrs.get('time'):
+            try:
+                parts = self.element_attrs['time'].split(':')
+                assert len(parts) == 3
+            except AssertionError:
+                raise AttributeError('time, if present, must be in the NTP format')
+
+    def publish(self, handler):
+        """Publish the MediaThumbnail as XML."""
+        PyRSS2Gen._element(handler, "media:thumbnail", None, self.element_attrs)
